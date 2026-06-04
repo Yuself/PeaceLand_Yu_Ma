@@ -20,6 +20,31 @@ This folder stores local chart planning notes and interactive prototypes for Pea
 - `dialogue` and `minigame` nodes are scene-like nodes with extra badges/details.
 - Nodes are connected by directed edges.
 
+## Reusable Node Levels
+
+- Level 1 nodes are the largest structural anchors.
+- In Present, level 1 nodes are locations.
+- In Memory, level 1 nodes are scene changes.
+- Level 2 nodes are medium content nodes such as collectables, dialog, and minigames.
+- Level 3 nodes are short interaction/action nodes, often used as bridges between two nodes.
+
+## Current Rework Notes
+
+- Present requirements: [present/PRESENT_REWORK_REQUIREMENTS.md](/D:/Peaceland/aidoc/charts/present/PRESENT_REWORK_REQUIREMENTS.md)
+- Memory requirements: [memory/MEMORY_REWORK_REQUIREMENTS.md](/D:/Peaceland/aidoc/charts/memory/MEMORY_REWORK_REQUIREMENTS.md)
+
+## Current xyflow Editor Features
+
+- Shared React Flow editor board for Present and Memory.
+- Manual node dragging.
+- Connect nodes by dragging from source handles to target handles.
+- Add draft nodes from the in-canvas node palette.
+- Duplicate and delete selected nodes.
+- Resize level 1 nodes.
+- Box/multi-select support through React Flow selection behavior.
+- Dagre-based left-to-right auto layout.
+- Save and restore layout from browser localStorage per graph.
+
 ## Node Interaction States
 
 1. Collapsed: title only

@@ -2,12 +2,32 @@ import type { GraphEdge, GraphNode, NodeKind } from "../types/graph";
 
 const colorClassByKind: Record<NodeKind, string> = {
   location: "location",
+  collectable: "collectable",
+  "interaction-trigger": "interaction-trigger",
+  dialog: "dialog",
+  minigame: "minigame",
   "memory-entry": "memory-entry",
   "npc-gate": "npc-gate",
   state: "state",
   scene: "scene",
   trigger: "trigger"
 };
+
+function getDefaultLevel(node: GraphNode) {
+  if (node.level) {
+    return node.level;
+  }
+
+  if (node.kind === "location" || node.kind === "scene") {
+    return 1;
+  }
+
+  if (node.kind === "collectable" || node.kind === "dialog" || node.kind === "minigame" || node.kind === "state") {
+    return 2;
+  }
+
+  return 3;
+}
 
 interface GraphBoardProps {
   edges: GraphEdge[];
@@ -67,6 +87,8 @@ export function GraphBoard({
             className={[
               "node",
               colorClassByKind[node.kind],
+              `level-${getDefaultLevel(node)}`,
+              node.role ? `role-${node.role}` : "",
               isSelected ? "active" : "",
               isExpanded ? "expanded" : "",
               faded ? "faded" : ""

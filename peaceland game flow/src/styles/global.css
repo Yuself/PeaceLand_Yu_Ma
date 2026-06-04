@@ -164,13 +164,13 @@ select option {
 
 .present-layout {
   display: grid;
-  grid-template-columns: minmax(88px, 320px) minmax(0, 1fr);
+  grid-template-columns: minmax(88px, 300px) minmax(620px, 1fr) minmax(280px, 360px);
   gap: 18px;
   align-items: start;
 }
 
 .present-layout.nav-collapsed {
-  grid-template-columns: 88px minmax(0, 1fr);
+  grid-template-columns: 88px minmax(620px, 1fr) minmax(280px, 360px);
 }
 
 .memory-intro {
@@ -376,54 +376,333 @@ select option {
 
 .present-board {
   position: relative;
-  min-height: min(84vh, 1040px);
-  padding: 24px;
+  height: min(78vh, 860px);
+  min-height: 640px;
+  padding: 0;
   overflow: hidden;
 }
 
-.present-board > svg {
+.flow-board {
+  position: relative;
+  height: min(78vh, 860px);
+  min-height: 640px;
+  padding: 0;
+  overflow: hidden;
+}
+
+.flow-board .react-flow {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
-  pointer-events: none;
+  background:
+    radial-gradient(circle at top, rgba(38, 48, 68, 0.92) 0%, rgba(23, 27, 34, 0.98) 60%);
 }
 
-.present-edge {
-  stroke: rgba(196, 206, 229, 0.42);
-  stroke-width: 2.4;
+.flow-toolbar,
+.node-palette,
+.node-toolbar {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
-.present-edge.focused {
-  stroke: rgba(228, 161, 100, 0.5);
+.flow-toolbar,
+.node-palette {
+  max-width: min(720px, calc(100vw - 80px));
 }
 
-.selected-overlay {
+.flow-toolbar button,
+.node-palette button,
+.node-toolbar button {
+  appearance: none;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(17, 22, 31, 0.86);
+  color: var(--text);
+  border-radius: 10px;
+  padding: 9px 12px;
+  cursor: pointer;
+  box-shadow: var(--shadow);
+}
+
+.flow-toolbar button:disabled,
+.node-palette button:disabled,
+.node-toolbar button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.node-toolbar {
+  padding: 8px;
+  border-radius: 12px;
+  background: rgba(17, 22, 31, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: var(--shadow);
+}
+
+.node-toolbar button {
+  padding: 6px 9px;
+  border-radius: 8px;
+  font-size: 12px;
+}
+
+.flow-board .react-flow__attribution {
+  display: none;
+}
+
+.flow-board .react-flow__minimap,
+.flow-board .react-flow__controls {
+  background: rgba(17, 22, 31, 0.86);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+}
+
+.flow-board .react-flow__controls-button {
+  background: transparent;
+  color: var(--text);
+  border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+.flow-board .react-flow__controls-button svg {
+  fill: currentColor;
+}
+
+.flow-board .react-flow__node {
+  background: transparent;
+  border: 0;
+}
+
+.flow-board .react-flow__node.selectable:focus,
+.flow-board .react-flow__node.selectable:focus-visible {
+  outline: none;
+}
+
+.flow-board .react-flow__node.is-selected .rf-node-card {
+  border-color: rgba(255, 255, 255, 0.28);
+  box-shadow: 0 28px 54px rgba(0, 0, 0, 0.46);
+}
+
+.present-board .react-flow {
   position: absolute;
-  inset: 0 auto 0 0;
-  width: min(420px, 46vw);
-  pointer-events: none;
-  z-index: 3;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background:
+    radial-gradient(circle at top, rgba(38, 48, 68, 0.92) 0%, rgba(23, 27, 34, 0.98) 60%);
 }
 
-.selected-overlay.open {
-  pointer-events: auto;
+.present-board .react-flow__renderer,
+.present-board .react-flow__pane,
+.present-board .react-flow__viewport {
+  cursor: grab;
 }
 
-.selected-drawer {
-  position: absolute;
-  left: 18px;
+.present-board .react-flow__attribution {
+  display: none;
+}
+
+.present-board .react-flow__minimap,
+.present-board .react-flow__controls {
+  background: rgba(17, 22, 31, 0.86);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+}
+
+.present-board .react-flow__controls-button {
+  background: transparent;
+  color: var(--text);
+  border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+.present-board .react-flow__controls-button svg {
+  fill: currentColor;
+}
+
+.present-board .react-flow__edge-path {
+  stroke-linecap: round;
+}
+
+.present-board .react-flow__node {
+  background: transparent;
+  border: 0;
+}
+
+.present-board .react-flow__node.selectable:focus,
+.present-board .react-flow__node.selectable:focus-visible {
+  outline: none;
+}
+
+.present-board .react-flow__node.is-selected .rf-node-card {
+  border-color: rgba(255, 255, 255, 0.28);
+  box-shadow: 0 28px 54px rgba(0, 0, 0, 0.46);
+}
+
+.rf-cluster {
+  width: 100%;
+  height: 100%;
+  border-radius: 28px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01));
+}
+
+.rf-cluster-label {
+  padding: 18px 18px 0;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 13px;
+}
+
+.rf-node-card {
+  width: 248px;
+  min-height: 108px;
+  border: 2px solid rgba(255, 255, 255, 0.12);
+  background: linear-gradient(180deg, rgba(33, 41, 58, 0.94), rgba(19, 24, 34, 0.96));
+  color: var(--text);
+  box-shadow: var(--shadow);
+  padding: 12px 14px;
+  text-align: left;
+  transition: transform 150ms ease, border-color 150ms ease, box-shadow 150ms ease, background 150ms ease;
+}
+
+.rf-node-card:hover,
+.rf-node-card.selected {
+  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.24);
+  background: linear-gradient(180deg, rgba(41, 52, 76, 0.98), rgba(21, 29, 43, 0.98));
+}
+
+.rf-node-card.major {
+  width: 270px;
+}
+
+.rf-node-card.minor {
+  width: 248px;
+}
+
+.rf-node-card.level-1 {
+  width: 286px;
+  min-height: 126px;
+}
+
+.rf-node-card.level-2 {
+  width: 230px;
+  min-height: 104px;
+}
+
+.rf-node-card.level-3 {
+  width: 198px;
+  min-height: 92px;
+}
+
+.rf-node-card.location {
+  border-radius: 28px;
+  border-left: 8px solid var(--scene);
+}
+
+.rf-node-card.collectable {
+  border-radius: 18px;
+  border-left: 8px solid var(--ok);
+}
+
+.rf-node-card.interaction-trigger {
+  border-radius: 999px;
+  border-left: 8px solid var(--danger);
+}
+
+.rf-node-card.memory-entry {
+  border-radius: 999px;
+  border-left: 8px solid var(--memory);
+}
+
+.rf-node-card.npc-gate {
+  border-radius: 20px;
+  border-left: 8px solid var(--npc);
+}
+
+.rf-node-card.state {
+  border-radius: 20px;
+  border-left: 8px solid var(--state);
+}
+
+.rf-node-card.trigger {
+  border-radius: 999px;
+  border-left: 8px solid var(--danger);
+}
+
+.rf-node-top,
+.rf-node-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.rf-node-top {
+  margin-bottom: 10px;
+}
+
+.rf-node-status,
+.rf-node-day,
+.rf-node-footer span {
+  color: var(--muted);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.rf-node-day {
+  max-width: 120px;
+  text-align: right;
+}
+
+.rf-node-card h3 {
+  margin: 0 0 8px;
+  font-size: 16px;
+  line-height: 1.2;
+}
+
+.rf-node-card p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.4;
+  font-size: 12px;
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.rf-node-footer {
+  margin-top: 10px;
+}
+
+.rf-node-footer button {
+  appearance: none;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--text);
+  border-radius: 999px;
+  padding: 6px 12px;
+  cursor: pointer;
+}
+
+.rf-node-card .react-flow__handle {
+  width: 10px;
+  height: 10px;
+  border: 2px solid rgba(17, 22, 31, 0.92);
+  background: rgba(255, 255, 255, 0.82);
+}
+
+.selected-panel {
+  position: sticky;
   top: 18px;
-  bottom: 18px;
-  width: calc(100% - 18px);
+  min-height: 420px;
+  max-height: min(78vh, 860px);
   padding: 18px;
   overflow: auto;
-  transform: translateX(-108%);
-  transition: transform 180ms ease;
-}
-
-.selected-overlay.open .selected-drawer {
-  transform: translateX(0);
 }
 
 .selected-drawer-top {
@@ -435,6 +714,14 @@ select option {
 
 .selected-drawer-top h2 {
   margin: 4px 0 0;
+}
+
+.selected-panel > article > p,
+.selected-placeholder p {
+  margin: 12px 0 16px;
+  color: var(--text);
+  line-height: 1.5;
+  font-size: 14px;
 }
 
 .board svg {
@@ -464,6 +751,21 @@ select option {
   transition: transform 150ms ease, border-color 150ms ease, background 150ms ease, opacity 150ms ease;
 }
 
+.node.level-1 {
+  width: 250px;
+  min-height: 126px;
+}
+
+.node.level-2 {
+  width: 210px;
+  min-height: 104px;
+}
+
+.node.level-3 {
+  width: 170px;
+  min-height: 86px;
+}
+
 .node:hover,
 .node.active {
   transform: translateY(-2px);
@@ -478,6 +780,26 @@ select option {
 .node.location {
   border-radius: 18px;
   border-left: 7px solid var(--scene);
+}
+
+.node.collectable {
+  border-radius: 18px;
+  border-left: 7px solid var(--ok);
+}
+
+.node.dialog {
+  border-radius: 18px;
+  border-left: 7px solid var(--npc);
+}
+
+.node.minigame {
+  border-radius: 18px;
+  border-left: 7px solid var(--memory);
+}
+
+.node.interaction-trigger {
+  border-radius: 999px;
+  border-left: 7px solid var(--danger);
 }
 
 .node.memory-entry {
@@ -531,70 +853,6 @@ select option {
   display: block;
 }
 
-.present-node {
-  position: absolute;
-  transform: translate(-50%, -50%);
-  border: 2px solid rgba(255, 255, 255, 0.12);
-  background: linear-gradient(180deg, rgba(33, 41, 58, 0.9), rgba(19, 24, 34, 0.92));
-  color: var(--text);
-  box-shadow: var(--shadow);
-  cursor: pointer;
-  padding: 12px 14px;
-  text-align: left;
-  transition: transform 150ms ease, border-color 150ms ease, box-shadow 150ms ease, background 150ms ease;
-}
-
-.present-node:hover,
-.present-node.active {
-  transform: translate(-50%, -50%) scale(1.02);
-  border-color: rgba(255, 255, 255, 0.28);
-  background: linear-gradient(180deg, rgba(41, 52, 76, 0.96), rgba(21, 29, 43, 0.96));
-}
-
-.present-node.major {
-  width: 238px;
-  min-height: 136px;
-}
-
-.present-node.minor {
-  width: 162px;
-  min-height: 106px;
-}
-
-.present-node.location {
-  border-radius: 28px;
-  border-left: 8px solid var(--scene);
-}
-
-.present-node.memory-entry {
-  border-radius: 999px;
-  border-left: 8px solid var(--memory);
-}
-
-.present-node.npc-gate {
-  border-radius: 20px;
-  border-left: 8px solid var(--npc);
-}
-
-.present-node.state {
-  border-radius: 20px;
-  border-left: 8px solid var(--state);
-}
-
-.present-node.trigger {
-  border-radius: 999px;
-  border-left: 8px solid var(--danger);
-}
-
-.present-node .node-meta {
-  display: block;
-  margin-bottom: 8px;
-}
-
-.present-node-sub {
-  display: block;
-}
-
 @media (max-width: 1320px) {
   .layout,
   .memory-layout,
@@ -613,6 +871,11 @@ select option {
   .selected-overlay {
     width: min(440px, 74vw);
   }
+
+  .selected-panel {
+    position: static;
+    max-height: none;
+  }
 }
 
 @media (max-width: 760px) {
@@ -622,21 +885,11 @@ select option {
     grid-template-columns: 1fr;
   }
 
-  .selected-overlay {
-    width: calc(100% - 20px);
-  }
-
-  .selected-drawer {
-    left: 10px;
-    right: 10px;
-    width: auto;
-  }
-
-  .present-node.major {
-    width: 196px;
-  }
-
-  .present-node.minor {
-    width: 146px;
+  .rf-node-card.major,
+  .rf-node-card.minor,
+  .rf-node-card.level-1,
+  .rf-node-card.level-2,
+  .rf-node-card.level-3 {
+    width: 220px;
   }
 }

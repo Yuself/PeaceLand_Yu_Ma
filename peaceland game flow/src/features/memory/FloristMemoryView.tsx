@@ -1,21 +1,11 @@
 import { useState } from "react";
 import { DetailsPanel } from "../../components/DetailsPanel";
-import { GraphBoard } from "../../components/GraphBoard";
+import { FlowGraphBoard } from "../../components/FlowGraphBoard";
 import { floristEdges, floristNodes } from "../../data/floristMemoryData";
 
 export function FloristMemoryView() {
   const [selectedId, setSelectedId] = useState<string | null>(floristNodes[0]?.id ?? null);
-  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   const selectedNode = floristNodes.find((node) => node.id === selectedId) ?? null;
-
-  const toggleExpand = (nodeId: string) => {
-    setExpandedIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(nodeId)) next.delete(nodeId);
-      else next.add(nodeId);
-      return next;
-    });
-  };
 
   return (
     <div className="memory-layout">
@@ -30,14 +20,13 @@ export function FloristMemoryView() {
           </p>
         </section>
       </div>
-      <GraphBoard
+      <FlowGraphBoard
+        activeDay={1}
         edges={floristEdges}
+        graphId="florist-memory"
         nodes={floristNodes}
         selectedId={selectedId}
-        expandedIds={expandedIds}
         onSelect={setSelectedId}
-        onToggleExpand={toggleExpand}
-        fadedMode="all"
       />
       <DetailsPanel activeDay={1} selectedNode={selectedNode} dayNote="Florist is the Day 1 memory route." />
     </div>

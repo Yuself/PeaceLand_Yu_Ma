@@ -1,4 +1,23 @@
-export type NodeKind = "location" | "memory-entry" | "npc-gate" | "state" | "scene" | "trigger";
+export type NodeKind =
+  | "location"
+  | "collectable"
+  | "interaction-trigger"
+  | "dialog"
+  | "minigame"
+  | "memory-entry"
+  | "npc-gate"
+  | "state"
+  | "scene"
+  | "trigger";
+export type GraphNodeLevel = 1 | 2 | 3;
+export type GraphNodeRole =
+  | "location"
+  | "collectable"
+  | "interaction-trigger"
+  | "scene-change"
+  | "dialog"
+  | "minigame"
+  | "scene-interaction";
 
 export interface GraphNode {
   id: string;
@@ -17,6 +36,8 @@ export interface GraphNode {
   unlocks: string[];
   queryPath: string[];
   enterButton?: boolean;
+  level?: GraphNodeLevel;
+  role?: GraphNodeRole;
 }
 
 export type PresentCluster = "hub" | "town" | "museum" | "artifact" | "war" | "state";

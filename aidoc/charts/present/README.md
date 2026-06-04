@@ -5,6 +5,17 @@ This folder stores local present-first graph prototypes.
 ## Current Prototype
 
 - [present_chart_prototype.html](/D:/Peaceland/aidoc/charts/present/present_chart_prototype.html)
+- [PRESENT_REWORK_REQUIREMENTS.md](/D:/Peaceland/aidoc/charts/present/PRESENT_REWORK_REQUIREMENTS.md)
+
+## Current Rework Direction
+
+- Present is being reworked as a location-first graph.
+- Not every node needs to be connected.
+- Confirmed location nodes are `Museum`, `Memory Tree`, `War Exhibit`, and `Town Square`.
+- `Museum` is the default center location connecting to the other main locations.
+- Each location initially gets one collectable placeholder and one interaction placeholder.
+- Each placeholder is linked to its owning location.
+- Location nodes are the largest tier, collectables are level 2, and interaction triggers are level 3.
 
 ## Current UI Features
 

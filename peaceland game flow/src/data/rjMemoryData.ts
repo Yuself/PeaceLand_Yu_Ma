@@ -15,6 +15,8 @@ export const rjNodes: GraphNode[] = [
     id: "rjn-001",
     title: "Present Museum Intro",
     kind: "scene",
+    role: "scene-change",
+    level: 1,
     summary: "Marc opens the museum day and is approached by Jovan and Ruzica to share their memory.",
     detail:
       "Matches RJN-001. This is the present-day interview framing node before the memory proper begins.",
@@ -38,6 +40,8 @@ export const rjNodes: GraphNode[] = [
     id: "rjt-002-rjs-003",
     title: "Museum Presentation -> Interview Accepted",
     kind: "state",
+    role: "scene-change",
+    level: 1,
     summary: "The presentation layer resolves and the R&J interview is formally accepted.",
     detail:
       "Combines RJT-002 and RJS-003. Present-day museum visuals advance, then Jovan and Ruzica consent to having their story collected for the Memory Tree.",
@@ -61,6 +65,8 @@ export const rjNodes: GraphNode[] = [
     id: "rjn-005-rjb-006",
     title: "Jovan Searches for the Letter",
     kind: "scene",
+    role: "scene-change",
+    level: 1,
     summary: "Jovan searches for the hidden letter while Damir questions him.",
     detail:
       "Combines RJT-004, RJN-005, and RJB-006. The memory shifts into Jovan's POV, and Damir's suspicion creates response variants that still converge.",
@@ -83,7 +89,9 @@ export const rjNodes: GraphNode[] = [
   {
     id: "rji-007-rjm-008",
     title: "Letter Pieces Revealed -> Letter Puzzle",
-    kind: "scene",
+    kind: "minigame",
+    role: "minigame",
+    level: 2,
     summary: "The hidden letter is revealed and reconstructed through the first explicit R&J minigame.",
     detail:
       "Combines RJI-007 and RJM-008. Letter pieces become the playable object and the letter puzzle reconstructs the meeting instructions.",
@@ -107,6 +115,8 @@ export const rjNodes: GraphNode[] = [
     id: "rjn-009-rjs-010",
     title: "Damir Returns -> Route to Ruzica Established",
     kind: "scene",
+    role: "scene-change",
+    level: 1,
     summary: "Damir returns, understands the situation, and reluctantly helps Jovan establish a route to Ruzica.",
     detail:
       "Combines RJN-009 and RJS-010. The post-puzzle confrontation turns into reluctant support and travel-route unlock.",
@@ -130,6 +140,8 @@ export const rjNodes: GraphNode[] = [
     id: "rjn-012-rjb-013",
     title: "Ruzica House Escape Decision",
     kind: "scene",
+    role: "scene-change",
+    level: 1,
     summary: "Jovan enters Ruzica's room and the lovers decide to leave together.",
     detail:
       "Combines RJT-011, RJN-012, and RJB-013. Ruzica's mother remains off-screen pressure while response variants still converge on escape.",
@@ -152,7 +164,9 @@ export const rjNodes: GraphNode[] = [
   {
     id: "rjm-015",
     title: "Sneaking Sequence",
-    kind: "scene",
+    kind: "minigame",
+    role: "minigame",
+    level: 2,
     summary: "The lovers' escape becomes an active sneaking gameplay segment.",
     detail:
       "Matches RJT-014 and RJM-015. Supported by SneakManager, SneakPlayer, SneakSentry, HidingPlace, and R&J_Sneak prefabs/scripts.",
@@ -176,6 +190,8 @@ export const rjNodes: GraphNode[] = [
     id: "rjn-018-rjb-019",
     title: "Return to Museum -> After-Memory Reflection",
     kind: "scene",
+    role: "scene-change",
+    level: 1,
     summary: "The game returns to the museum present and continues the interview with Damir's fate and later-life reflection.",
     detail:
       "Combines RJS-016, RJT-017, RJN-018, and RJB-019. seenRJMemory is set, the game returns to present, and Marc's follow-up questions shape the order of reflection before converging.",
@@ -199,6 +215,8 @@ export const rjNodes: GraphNode[] = [
     id: "rjn-021",
     title: "Marc Prepares the Memory Tree Entry",
     kind: "trigger",
+    role: "scene-interaction",
+    level: 3,
     summary: "Marc is left alone and prepares the memory-tree entry as the current demo endpoint.",
     detail:
       "Combines RJT-020 and RJN-021. Jovan and Ruzica leave, and Marc closes the R&J flow by planning to assemble the memory and go home.",

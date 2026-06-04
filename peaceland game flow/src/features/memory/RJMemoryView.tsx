@@ -1,21 +1,11 @@
 import { useState } from "react";
 import { DetailsPanel } from "../../components/DetailsPanel";
-import { GraphBoard } from "../../components/GraphBoard";
+import { FlowGraphBoard } from "../../components/FlowGraphBoard";
 import { rjEdges, rjNodes } from "../../data/rjMemoryData";
 
 export function RJMemoryView() {
   const [selectedId, setSelectedId] = useState<string | null>(rjNodes[0]?.id ?? null);
-  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   const selectedNode = rjNodes.find((node) => node.id === selectedId) ?? null;
-
-  const toggleExpand = (nodeId: string) => {
-    setExpandedIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(nodeId)) next.delete(nodeId);
-      else next.add(nodeId);
-      return next;
-    });
-  };
 
   return (
     <div className="memory-layout">
@@ -30,14 +20,13 @@ export function RJMemoryView() {
           </p>
         </section>
       </div>
-      <GraphBoard
+      <FlowGraphBoard
+        activeDay={2}
         edges={rjEdges}
+        graphId="rj-memory"
         nodes={rjNodes}
         selectedId={selectedId}
-        expandedIds={expandedIds}
         onSelect={setSelectedId}
-        onToggleExpand={toggleExpand}
-        fadedMode="all"
       />
       <DetailsPanel activeDay={2} selectedNode={selectedNode} dayNote="R&J is one of the Days 2-4 memory routes." />
     </div>
