@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Florist Chart Prototype</title>
+  <style>
+    :root {
+      --bg: #141821;
+      --panel: #1c2230;
+      --grid: rgba(255, 255, 255, 0.05);
+      --text: #eef2ff;
+      --muted: #a7b0c9;
+      --line: #7f8ab0;
+      --scene: #5d8fd6;
+      --trigger: #de9b4a;
+      --dialogue: #6ab48e;
+      --minigame: #8e7ce6;
+      --outcome: #d86e7e;
+      --badge: rgba(255, 255, 255, 0.12);
+      --shadow: 0 18px 40px rgba(0, 0, 0, 0.28);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      color: var(--text);
+      background:
+        linear-gradient(var(--grid) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid) 1px, transparent 1px),
+        radial-gradient(circle at top, #232c3f 0%, #141821 58%);
+      background-size: 32px 32px, 32px 32px, auto;
+    }
+
+    .page {
+      padding: clamp(18px, 2.5vw, 36px);
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: flex-start;
+      margin-bottom: 18px;
+    }
+
+    .heading h1 {
+      margin: 0 0 8px;
+      font-size: 28px;
+      font-weight: 700;
+    }
+
+    .heading p {
+      margin: 0;
+      max-width: 760px;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .legend {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      max-width: 520px;
+    }
+
+    .legend span {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .controls {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 18px 0 14px;
+      padding: 14px 16px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: var(--muted);
+    }
+
+    .controls label {
+      font-size: 14px;
+      color: var(--text);
+      white-space: nowrap;
+    }
+
+    .controls input[type="range"] {
+      width: min(320px, 42vw);
+      accent-color: #8e7ce6;
+    }
+
+    .controls .state {
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      display: inline-block;
+    }
+
+    .board {
+      position: relative;
+      min-height: 1520px;
+      overflow: auto;
+      border-radius: 22px;
+      background: rgba(17, 22, 31, 0.78);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: var(--shadow);
+      padding: 32px clamp(22px, 4vw, 52px);
+    }
+
+    .rail {
+      position: absolute;
+      left: clamp(42px, 5vw, 88px);
+      top: 72px;
+      width: 4px;
+      height: 1340px;
+      border-radius: 999px;
+      background: linear-gradient(to bottom, #60749d 0%, #95a6cb 100%);
+      opacity: 0.8;
+    }
+
+    svg.edges {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+
+    .edge {
+      stroke: var(--line);
+      stroke-width: 2.4;
+      fill: none;
+      opacity: 0.9;
+    }
+
+    .node {
+      position: absolute;
+      width: min(340px, calc(100vw - 140px));
+      color: var(--text);
+      border: 2px solid rgba(255, 255, 255, 0.12);
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.03));
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(8px);
+      transition: transform 160ms ease, border-color 160ms ease, background 160ms ease;
+    }
+
+    .node:hover,
+    .node:focus-within {
+      transform: translateY(-2px);
+      border-color: rgba(255, 255, 255, 0.24);
+    }
+
+    .node.scene,
+    .node.dialogue,
+    .node.minigame,
+    .node.outcome {
+      border-radius: 20px;
+    }
+
+    .node.trigger {
+      border-radius: 999px;
+      width: min(300px, calc(100vw - 180px));
+      min-height: 92px;
+    }
+
+    .node-shell {
+      padding: 16px 18px;
+    }
+
+    .node-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .node-id {
+      color: var(--muted);
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    .node-title {
+      margin: 0;
+      font-size: 18px;
+      line-height: 1.2;
+    }
+
+    .badge {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 6px 8px;
+      border-radius: 999px;
+      background: var(--badge);
+      color: var(--text);
+      white-space: nowrap;
+    }
+
+    .color-scene { border-left: 6px solid var(--scene); }
+    .color-trigger { border-left: 6px solid var(--trigger); }
+    .color-dialogue { border-left: 6px solid var(--dialogue); }
+    .color-minigame { border-left: 6px solid var(--minigame); }
+    .color-outcome { border-left: 6px solid var(--outcome); }
+
+    .preview {
+      margin-top: 10px;
+      color: var(--muted);
+      line-height: 1.45;
+      font-size: 14px;
+    }
+
+    .summary-card {
+      margin-top: 12px;
+      border-radius: 14px;
+      padding: 12px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      display: none;
+      color: var(--muted);
+      line-height: 1.45;
+      font-size: 13px;
+    }
+
+    .node:hover .summary-card,
+    .node:focus-within .summary-card {
+      display: block;
+    }
+
+    .expand {
+      margin-top: 12px;
+      appearance: none;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text);
+      border-radius: 10px;
+      padding: 8px 10px;
+      cursor: pointer;
+      font: inherit;
+    }
+
+    .expand:hover {
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .details {
+      margin-top: 12px;
+      display: none;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      padding-top: 12px;
+    }
+
+    .node.expanded .details {
+      display: block;
+    }
+
+    .section {
+      margin-bottom: 12px;
+    }
+
+    .section h4 {
+      margin: 0 0 6px;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+    }
+
+    .section p,
+    .section ul {
+      margin: 0;
+      color: var(--text);
+      line-height: 1.45;
+      font-size: 14px;
+    }
+
+    .section ul {
+      padding-left: 18px;
+    }
+
+    .quick-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .quick-box {
+      border-radius: 12px;
+      padding: 10px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .quick-box strong {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 12px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .stat {
+      border-radius: 12px;
+      padding: 10px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .stat strong {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .mini-note {
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .footer-note {
+      margin-top: 16px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    @media (max-width: 1200px) {
+      .topbar {
+        flex-direction: column;
+      }
+
+      .legend {
+        justify-content: flex-start;
+      }
+    }
+
+    @media (max-width: 900px) {
+      .quick-grid,
+      .stats {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="topbar">
+      <div class="heading">
+        <h1>Florist Memory Chart Prototype</h1>
+        <p>
+          This local prototype tests the visual direction for an Obsidian-like node graph. Rectangles are scenes or interactables. Ellipses are triggers. Hover shows a short slide-style summary. Click <em>Expand</em> to open deeper node details.
+        </p>
+      </div>
+      <div class="legend">
+        <span><i class="dot" style="background: var(--scene)"></i> Scene</span>
+        <span><i class="dot" style="background: var(--trigger)"></i> Trigger</span>
+        <span><i class="dot" style="background: var(--dialogue)"></i> Dialogue / Interaction</span>
+        <span><i class="dot" style="background: var(--minigame)"></i> Minigame</span>
+        <span><i class="dot" style="background: var(--outcome)"></i> Outcome</span>
+      </div>
+    </div>
+
+    <div class="controls">
+      <label for="expandSlider">Node Detail Slider</label>
+      <input id="expandSlider" type="range" min="0" max="1" step="1" value="0" />
+      <span class="state" id="sliderState">Collapsed All</span>
+    </div>
+
+    <div class="board">
+      <div class="rail"></div>
+      <svg class="edges" viewBox="0 0 1200 1520" preserveAspectRatio="none">
+        <path class="edge" d="M 236 118 C 236 148, 236 162, 236 194" />
+        <path class="edge" d="M 236 292 C 236 324, 236 340, 236 372" />
+        <path class="edge" d="M 236 470 C 236 502, 236 518, 236 550" />
+        <path class="edge" d="M 236 648 C 236 680, 236 696, 236 728" />
+        <path class="edge" d="M 236 826 C 236 858, 236 874, 236 906" />
+        <path class="edge" d="M 236 1004 C 236 1036, 236 1052, 236 1084" />
+        <path class="edge" d="M 236 1182 C 236 1214, 236 1230, 236 1262" />
+        <path class="edge" d="M 236 1360 C 236 1392, 236 1408, 236 1440" />
+      </svg>
+
+      <div class="node scene color-scene" style="left: 120px; top: 60px;">
+        <div class="node-shell">
+          <div class="node-head">
+            <div>
+              <div class="node-id">FL-01</div>
+              <h3 class="node-title">Intro: Vandalized Shop</h3>
+            </div>
+            <span class="badge">Scene</span>
+          </div>
+          <div class="summary-card">Mira discovers the vandalized flower shop on memorial day, establishing grief, social hostility, and emotional context before the customer loop begins.</div>
+          <div class="quick-grid">
+            <div class="quick-box">
+              <strong>Stat Snapshot</strong>
+              I/N context awareness, N/RA reaction pressure.
+            </div>
+            <div class="quick-box">
+              <strong>Notebook</strong>
+              Document placeholder, exterior collectable placeholder.
+            </div>
+          </div>
+          <button class="expand" type="button">Expand</button>
+          <div class="details">
+            <div class="section">
+              <h4>Summary</h4>
+              <p>The memory opens with damage already visible. This is the first framing node for how the florist route links mourning, war memory, and public tension.</p>
+            </div>
+            <div class="section">
+              <h4>Interaction</h4>
+              <p>Inspect vandalism, storefront damage, and entry path.</p>
+            </div>
+            <div class="section">
+              <h4>Stats</h4>
+              <div class="stats">
+                <div class="stat"><strong>S/A</strong> Placeholder response to self-protection versus care.</div>
+                <div class="stat"><strong>I/N</strong> Likely context-awareness increase through environmental reading.</div>
+                <div class="stat"><strong>N/RA</strong> Placeholder reaction to graffiti and memorial framing.</div>
+                <div class="stat"><strong>K/C</strong> Placeholder empathy versus bitterness response.</div>
+              </div>
+            </div>
+            <div class="section">
+              <h4>Notebook</h4>
+              <ul>
+                <li>Document: memorial or newspaper placeholder</li>
+                <li>Minigame Outcome: none</li>
+                <li>Scene Collectable: exterior object placeholder</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="node trigger color-trigger" style="left: 140px; top: 194px;">
+        <div class="node-shell">
+          <div class="node-head">
+            <div>
+              <div class="node-id">FL-02</div>
+              <h3 class="node-title">Trigger: Enter Shop</h3>
+            </div>
+            <span class="badge">Trigger</span>
+          </div>
+          <div class="summary-card">The player finishes the intro-space inspection and commits to entering the florist route proper.</div>
+          <div class="quick-grid">
+            <div class="quick-box">
+              <strong>Stat Snapshot</strong>
+              I/N clue reading placeholder.
+            </div>
+            <div class="quick-box">
+              <strong>Notebook</strong>
+              Entry-scene collectable placeholder.
+            </div>
+          </div>
+          <button class="expand" type="button">Expand</button>
+          <div class="details">
+            <div class="section">
+              <h4>Summary</h4>
+              <p>This is the handoff from intro setup into the active florist structure.</p>
+            </div>
+            <div class="section">
+              <h4>Condition</h4>
+              <p><span class="mini-note">shop_front -> door_front -> shop_inside</span></p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="node scene color-scene" style="left: 120px; top: 372px;">
+        <div class="node-shell">
+          <div class="node-head">
+            <div>
+              <div class="node-id">FL-03</div>
+              <h3 class="node-title">Florist Loop Starts</h3>
+            </div>
+            <span class="badge">Scene</span>
+          </div>
+          <div class="summary-card">The main serialized order flow begins, shifting from setup into the verified live customer loop.</div>
+          <div class="quick-grid">
+            <div class="quick-box">
+              <strong>Stat Snapshot</strong>
+              No direct stat pressure in this setup node.
+            </div>
+            <div class="quick-box">
+              <strong>Notebook</strong>
+              Loop-start placeholder for future notebook system.
+            </div>
+          </div>
+          <button class="expand" type="button">Expand</button>
+          <div class="details">
+            <div class="section">
+              <h4>Summary</h4>
+              <p>The route now enters the primary workday structure and prepares the first live order transition.</p>
+            </div>
+            <div class="section">
+              <h4>Notebook</h4>
+              <ul>
+                <li>Document: none</li>
+                <li>Minigame Outcome: loop-start placeholder</li>
+                <li>Scene Collectable: none</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="node minigame color-minigame" style="left: 120px; top: 550px;">
+        <div class="node-shell">
+          <div class="node-head">
+            <div>
+              <div class="node-id">FL-04</div>
+              <h3 class="node-title">Andrej Order</h3>
+            </div>
+            <span class="badge">Minigame</span>
+          </div>
+          <div class="summary-card">First full customer arc. Andrej brings the florist into its complete pattern of dialogue, bouquet work, and completion.</div>
+          <div class="quick-grid">
+            <div class="quick-box">
+              <strong>Stat Snapshot</strong>
+              S/A+, I/N+, K/C+ pressure point.
+            </div>
+            <div class="quick-box">
+              <strong>Notebook</strong>
+              Andrej doc placeholder, bouquet result, object placeholder.
+            </div>
+          </div>
+          <button class="expand" type="button">Expand</button>
+          <div class="details">
+            <div class="section">
+              <h4>Summary</h4>
+              <p>Andrej is the first full order beat and establishes the normal customer-service rhythm before later disruptions.</p>
+            </div>
+            <div class="section">
+              <h4>Interaction</h4>
+              <p>Dialogue choices, then bouquet work: <span class="mini-note">dethorn -> trim -> arrange</span>.</p>
+            </div>
+            <div class="section">
+              <h4>Stats</h4>
+              <div class="stats">
+                <div class="stat"><strong>S/A</strong> Helpful service versus self-protection.</div>
+                <div class="stat"><strong>I/N</strong> Reading grief subtext and emotional need.</div>
+                <div class="stat"><strong>N/RA</strong> Memorial framing placeholder.</div>
+                <div class="stat"><strong>K/C</strong> Warmth and patience likely matter here.</div>
+              </div>
+            </div>
+            <div class="section">
+              <h4>Notebook</h4>
+              <ul>
+                <li>Document: Andrej-related placeholder</li>
+                <li>Minigame Outcome: Andrej bouquet result</li>
+                <li>Scene Collectable: flower or object placeholder</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="node minigame color-minigame" style="left: 120px; top: 728px;">
+        <div class="node-shell">
+          <div class="node-head">
+            <div>
+              <div class="node-id">FL-05</div>
+              <h3 class="node-title">Danika Order</h3>
+            </div>
+            <span class="badge">Minigame</span>
+          </div>
+          <div class="summary-card">Second full customer arc. Danika ties the florist route more directly to communal memorial meaning and institutional remembrance.</div>
+          <div class="quick-grid">
+            <div class="quick-box">
+              <strong>Stat Snapshot</strong>
+              S/A+, I/N+, N/RA+, K/C+ pressure point.
+            </div>
+            <div class="quick-box">
+              <strong>Notebook</strong>
+              Danika doc placeholder, bouquet result, memorial card placeholder.
+            </div>
+          </div>
+          <button class="expand" type="button">Expand</button>
+          <div class="details">
+            <div class="section">
+              <h4>Interaction</h4>
+              <p>Dialogue choices, then bouquet work: <span class="mini-note">dethorn -> trim -> arrange</span>.</p>
+            </div>
+            <div class="section">
+              <h4>Stats</h4>
+              <div class="stats">
+                <div class="stat"><strong>S/A</strong> Service versus withdrawal.</div>
+                <div class="stat"><strong>I/N</strong> Understanding communal mourning.</div>
+                <div class="stat"><strong>N/RA</strong> Memorial institution response is more visible here.</div>
+                <div class="stat"><strong>K/C</strong> Compassion through teacher interaction.</div>
+              </div>
+            </div>
+            <div class="section">
+              <h4>Notebook</h4>
+              <ul>
+                <li>Document: Danika memorial entry placeholder</li>
+                <li>Minigame Outcome: Danika bouquet result</li>
+                <li>Scene Collectable: memorial card placeholder</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="node dialogue color-dialogue" style="left: 120px; top: 906px;">
+        <div class="node-shell">
+          <div class="node-head">
+            <div>
+              <div class="node-id">FL-06</div>
+              <h3 class="node-title">Boris Confrontation</h3>
+            </div>
+            <span class="badge">Dialogue</span>
+          </div>
+          <div class="summary-card">This is the hostility spike. The florist route temporarily stops being about service and becomes about public blame and pressure.</div>
+          <div class="quick-grid">
+            <div class="quick-box">
+              <strong>Stat Snapshot</strong>
+              N/RA major, K/C split, S/A pressure.
+            </div>
+            <div class="quick-box">
+              <strong>Notebook</strong>
+              Boris conflict entry placeholder.
+            </div>
+          </div>
+          <button class="expand" type="button">Expand</button>
+          <div class="details">
+            <div class="section">
+              <h4>Interaction</h4>
+              <p>Confrontation dialogue only. No bouquet-processing loop follows.</p>
+            </div>
+            <div class="section">
+              <h4>Stats</h4>
+              <div class="stats">
+                <div class="stat"><strong>S/A</strong> Self-defense versus de-escalation.</div>
+                <div class="stat"><strong>I/N</strong> Reading Boris's motive and pressure tactics.</div>
+                <div class="stat"><strong>N/RA</strong> Strongest pressure point in the route.</div>
+                <div class="stat"><strong>K/C</strong> Restraint versus verbal aggression split.</div>
+              </div>
+            </div>
+            <div class="section">
+              <h4>Notebook</h4>
+              <ul>
+                <li>Document: Boris conflict entry placeholder</li>
+                <li>Minigame Outcome: none</li>
+                <li>Scene Collectable: confrontation placeholder</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="node dialogue color-dialogue" style="left: 120px; top: 1084px;">
+        <div class="node-shell">
+          <div class="node-head">
+            <div>
+              <div class="node-id">FL-07</div>
+              <h3 class="node-title">Jeta Support Beat</h3>
+            </div>
+            <span class="badge">Dialogue</span>
+          </div>
+          <div class="summary-card">A softer support scene follows the conflict node and reorients the route toward care, grief, and interpersonal support.</div>
+          <div class="quick-grid">
+            <div class="quick-box">
+              <strong>Stat Snapshot</strong>
+              S/A+, I/N+, K/C+ support pressure.
+            </div>
+            <div class="quick-box">
+              <strong>Notebook</strong>
+              Jeta support document placeholder.
+            </div>
+          </div>
+          <button class="expand" type="button">Expand</button>
+          <div class="details">
+            <div class="section">
+              <h4>Interaction</h4>
+              <p>Support dialogue. This is a non-bouquet emotional support beat.</p>
+            </div>
+            <div class="section">
+              <h4>Stats</h4>
+              <div class="stats">
+                <div class="stat"><strong>S/A</strong> Accepting care versus shutting down.</div>
+                <div class="stat"><strong>I/N</strong> Recognizing emotional truth and support.</div>
+                <div class="stat"><strong>N/RA</strong> Lower-pressure social stance.</div>
+                <div class="stat"><strong>K/C</strong> Openness and tenderness axis.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="node minigame color-minigame" style="left: 120px; top: 1262px;">
+        <div class="node-shell">
+          <div class="node-head">
+            <div>
+              <div class="node-id">FL-08</div>
+              <h3 class="node-title">Lukas Order</h3>
+            </div>
+            <span class="badge">Minigame</span>
+          </div>
+          <div class="summary-card">Last full customer arc before the route breaks down. Lukas pushes grief closer to the surface than the earlier customer beats.</div>
+          <div class="quick-grid">
+            <div class="quick-box">
+              <strong>Stat Snapshot</strong>
+              I/N major, S/A+, K/C+ pressure point.
+            </div>
+            <div class="quick-box">
+              <strong>Notebook</strong>
+              Lukas doc placeholder, bouquet result, object placeholder.
+            </div>
+          </div>
+          <button class="expand" type="button">Expand</button>
+          <div class="details">
+            <div class="section">
+              <h4>Interaction</h4>
+              <p>Dialogue choices, then bouquet work: <span class="mini-note">dethorn -> trim -> arrange</span>.</p>
+            </div>
+            <div class="section">
+              <h4>Stats</h4>
+              <div class="stats">
+                <div class="stat"><strong>S/A</strong> Generosity toward a child customer.</div>
+                <div class="stat"><strong>I/N</strong> Strong grief-trigger recognition.</div>
+                <div class="stat"><strong>N/RA</strong> Indirect memorial meaning pressure.</div>
+                <div class="stat"><strong>K/C</strong> Gentleness and patience matter strongly.</div>
+              </div>
+            </div>
+            <div class="section">
+              <h4>Notebook</h4>
+              <ul>
+                <li>Document: Lukas-related placeholder</li>
+                <li>Minigame Outcome: Lukas bouquet result</li>
+                <li>Scene Collectable: flower or object placeholder</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="node trigger color-trigger" style="left: 140px; top: 1440px;">
+        <div class="node-shell">
+          <div class="node-head">
+            <div>
+              <div class="node-id">FL-09</div>
+              <h3 class="node-title">Trigger: Breakdown</h3>
+            </div>
+            <span class="badge">Trigger</span>
+          </div>
+          <div class="summary-card">The normal customer-service rhythm breaks. The route stops functioning as a stable workday and turns inward.</div>
+          <div class="quick-grid">
+            <div class="quick-box">
+              <strong>Stat Snapshot</strong>
+              I/N major, K/C self-harshness placeholder.
+            </div>
+            <div class="quick-box">
+              <strong>Notebook</strong>
+              Breakdown-start placeholder.
+            </div>
+          </div>
+          <button class="expand" type="button">Expand</button>
+          <div class="details">
+            <div class="section">
+              <h4>Condition</h4>
+              <p>Triggered after Lukas completion and the transition into the endgame sequence.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="node outcome color-outcome" style="left: 520px; top: 1348px;">
+        <div class="node-shell">
+          <div class="node-head">
+            <div>
+              <div class="node-id">FL-10</div>
+              <h3 class="node-title">Outcome Range</h3>
+            </div>
+            <span class="badge">Outcome</span>
+          </div>
+          <div class="summary-card">The florist memory ends in collapse, but the interpretive reading can still vary across a low-to-high emotional outcome band.</div>
+          <div class="quick-grid">
+            <div class="quick-box">
+              <strong>Stat Snapshot</strong>
+              Final 4-stat readout summary placeholder.
+            </div>
+            <div class="quick-box">
+              <strong>Notebook</strong>
+              Memory summary, final outcome, completion placeholder.
+            </div>
+          </div>
+          <button class="expand" type="button">Expand</button>
+          <div class="details">
+            <div class="section">
+              <h4>Lower Bound</h4>
+              <p>Isolation, bitterness, unresolved grief, and hostility reinforced.</p>
+            </div>
+            <div class="section">
+              <h4>Upper Bound</h4>
+              <p>Empathy, mourning clarity, and social pain more fully understood.</p>
+            </div>
+            <div class="section">
+              <h4>Notebook</h4>
+              <ul>
+                <li>Document: memory summary entry</li>
+                <li>Minigame Outcome: final florist memory summary</li>
+                <li>Scene Collectable: completion placeholder</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer-note" style="position:absolute; left: 120px; top: 1476px;">
+        Prototype note: this version is local-only, hard-coded, and intended to validate visual direction before wiring a Drive-maintained sheet into the graph.
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const nodes = document.querySelectorAll(".node");
+    const slider = document.getElementById("expandSlider");
+    const sliderState = document.getElementById("sliderState");
+
+    nodes.forEach((node) => {
+      const button = node.querySelector(".expand");
+      if (!button) return;
+
+      button.addEventListener("click", () => {
+        const expanded = node.classList.toggle("expanded");
+        button.textContent = expanded ? "Collapse" : "Expand";
+        syncSliderState();
+      });
+    });
+
+    function syncSliderState() {
+      const expandedCount = document.querySelectorAll(".node.expanded").length;
+      const allExpanded = expandedCount === nodes.length;
+      const noneExpanded = expandedCount === 0;
+
+      if (allExpanded) {
+        slider.value = "1";
+        sliderState.textContent = "Expanded All";
+      } else if (noneExpanded) {
+        slider.value = "0";
+        sliderState.textContent = "Collapsed All";
+      } else {
+        sliderState.textContent = `Mixed State (${expandedCount}/${nodes.length})`;
+      }
+    }
+
+    slider.addEventListener("input", () => {
+      const expandAll = slider.value === "1";
+      nodes.forEach((node) => {
+        const button = node.querySelector(".expand");
+        node.classList.toggle("expanded", expandAll);
+        if (button) {
+          button.textContent = expandAll ? "Collapse" : "Expand";
+        }
+      });
+      sliderState.textContent = expandAll ? "Expanded All" : "Collapsed All";
+    });
+  </script>
+</body>
+</html>

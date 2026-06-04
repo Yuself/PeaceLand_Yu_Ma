@@ -1,0 +1,14 @@
+.cursor/
+.git/
+
+# Keep the existing Unity repo separate from this outer docs/charts repo.
+peaceland_Yu_Edit/
+
+# Local databases and transient files
+*.db
+*.db-journal
+.codegraph/
+
+# Common editor / OS noise
+Thumbs.db
+Desktop.ini
