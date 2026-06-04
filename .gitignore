@@ -12,3 +12,8 @@ peaceland_Yu_Edit/
 # Common editor / OS noise
 Thumbs.db
 Desktop.ini
+
+# React flow prototype workspace
+peaceland game flow/node_modules/
+peaceland game flow/dist/
+peaceland game flow/*.tsbuildinfo

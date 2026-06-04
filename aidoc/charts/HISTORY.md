@@ -82,6 +82,38 @@ This file records local chart-related changes in `D:\Peaceland\aidoc\charts`.
 - Improved selection contrast and focus states to avoid low-contrast white-on-white interaction issues.
 - Reworked edge layout to better match the new center-origin node positions.
 
+### React flow app restructuring
+
+- Created the root-level React app workspace at [peaceland game flow](</D:/Peaceland/peaceland game flow>) so the chart system no longer depends on single-file HTML prototypes.
+- Split the app into present and memory feature views and moved node data into typed `src/data` files.
+- Added dedicated `Florist Memory` and `R&J Memory` React views aligned to the corresponding gameplay graph drafts in the Unity repo.
+- Fixed dark-theme form controls in the React app to avoid white-on-white text in browser selects and inputs.
+
+### Present map React restructure v1
+
+- Rebuilt the React present view into a present-only network layout instead of the earlier generic three-column graph board.
+- Changed present-node placement from absolute hand-authored coordinates to relative cluster layout:
+  - major location nodes act as anchors
+  - smaller branch nodes orbit around their anchor locations
+- Added a collapsible left navigation bar for search, day notes, and the overall progress panel.
+- Moved the selected-node detail view into a left-side overlay drawer that opens on top of the graph instead of using a fixed right column.
+- Added selected-node focus behavior:
+  - choosing a node recenters the graph on that node
+  - only the selected node and its immediate connected nodes stay in focus
+  - closing the drawer returns to full graph view
+- Expanded the present data model with explicit route nodes for:
+  - Day 1 Florist
+  - Days 2-4 R&J / Villain / Child choice set
+  - Day 5 Boris
+- Added present-only query nodes for:
+  - NPC day schedule skeleton
+  - consequence path tracking
+  - museum interview state
+  - artifact document and collectable placeholders
+- Preserved the `Enter Memory` action on route-capable nodes inside the overlay drawer.
+- Verified the React app TypeScript build graph with `npx tsc -b`.
+- Observed that `npm run build` currently fails on this machine because Vite's esbuild step hits `spawn EPERM`; this is a local build-process issue rather than a TypeScript error in the present view rewrite.
+
 ## Notes
 
 - `D:\Peaceland` is now a git repository root for docs, charts, local art, and planning files.
