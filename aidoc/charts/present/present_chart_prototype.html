@@ -1,0 +1,1094 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Present Map Prototype</title>
+  <style>
+    :root {
+      --bg: #171b22;
+      --panel: #202734;
+      --line: #95a3c2;
+      --text: #eef3ff;
+      --muted: #9ba7c2;
+      --scene: #7db3ff;
+      --memory: #e4a164;
+      --npc: #7fd5a5;
+      --danger: #d97a88;
+      --ok: #6ec7a2;
+      --shadow: 0 20px 50px rgba(0, 0, 0, 0.34);
+      --grid: rgba(255,255,255,0.05);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      color: var(--text);
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background:
+        linear-gradient(var(--grid) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid) 1px, transparent 1px),
+        radial-gradient(circle at top, #263044 0%, #171b22 60%);
+      background-size: 28px 28px, 28px 28px, auto;
+    }
+
+    .page {
+      padding: clamp(18px, 2.6vw, 34px);
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      gap: 18px;
+      align-items: flex-start;
+      margin-bottom: 18px;
+    }
+
+    .header h1 {
+      margin: 0 0 10px;
+      font-size: 30px;
+    }
+
+    .header p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.5;
+      max-width: 920px;
+    }
+
+    .legend {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      max-width: 520px;
+    }
+
+    .legend span {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.06);
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      display: inline-block;
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 16px;
+      padding: 14px 16px;
+      border-radius: 16px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.08);
+      box-shadow: var(--shadow);
+    }
+
+    .control-group {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    label {
+      font-size: 14px;
+      color: var(--text);
+    }
+
+    select, button, input {
+      appearance: none;
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(255,255,255,0.07);
+      color: var(--text);
+      border-radius: 10px;
+      padding: 10px 12px;
+      font: inherit;
+      outline: none;
+    }
+
+    select:focus,
+    button:focus,
+    input:focus {
+      border-color: #7db3ff;
+      box-shadow: 0 0 0 2px rgba(125,179,255,0.18);
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    button:hover, select:hover {
+      background: rgba(255,255,255,0.11);
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(220px, 320px) minmax(680px, 1fr) minmax(0, 380px);
+      gap: 18px;
+      align-items: start;
+    }
+
+    .panel,
+    .board {
+      border-radius: 22px;
+      background: rgba(17, 22, 31, 0.82);
+      border: 1px solid rgba(255,255,255,0.08);
+      box-shadow: var(--shadow);
+    }
+
+    .navpanel {
+      padding: 18px;
+      position: sticky;
+      top: 18px;
+      resize: horizontal;
+      overflow: auto;
+      min-width: 220px;
+      max-width: 420px;
+    }
+
+    .sidebar {
+      padding: 18px;
+      position: sticky;
+      top: 18px;
+      min-height: 320px;
+    }
+
+    .board {
+      position: relative;
+      min-height: 980px;
+      overflow: auto;
+      padding: 26px;
+    }
+
+    .search {
+      width: 100%;
+      margin-bottom: 12px;
+    }
+
+    .nav-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 18px;
+    }
+
+    .nav-button {
+      width: 100%;
+      text-align: left;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.04);
+    }
+
+    .nav-button:hover,
+    .nav-button.active {
+      background: rgba(255,255,255,0.12);
+      border-color: rgba(255,255,255,0.22);
+    }
+
+    .board svg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+
+    .edge {
+      fill: none;
+      stroke: var(--line);
+      stroke-width: 2.2;
+      opacity: 0.92;
+    }
+
+    .node {
+      position: absolute;
+      min-width: 180px;
+      max-width: 250px;
+      border: 2px solid rgba(255,255,255,0.14);
+      background: linear-gradient(180deg, rgba(255,255,255,0.09), rgba(255,255,255,0.03));
+      box-shadow: var(--shadow);
+      padding: 14px 16px;
+      cursor: pointer;
+      transition: transform 150ms ease, border-color 150ms ease, background 150ms ease;
+    }
+
+    .node:hover,
+    .node.active {
+      transform: translateY(-2px);
+      border-color: rgba(255,255,255,0.3);
+      background: linear-gradient(180deg, rgba(255,255,255,0.14), rgba(255,255,255,0.05));
+    }
+
+    .node.location {
+      border-radius: 18px;
+      border-left: 7px solid var(--scene);
+    }
+
+    .node.memory-entry {
+      border-radius: 999px;
+      border-left: 7px solid var(--memory);
+      min-width: 170px;
+      text-align: center;
+    }
+
+    .node.npc-gate {
+      border-radius: 18px;
+      border-left: 7px solid var(--npc);
+    }
+
+    .node-title {
+      margin: 0 0 6px;
+      font-size: 17px;
+      line-height: 1.2;
+    }
+
+    .node-meta {
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .node-sub {
+      margin-top: 8px;
+      color: var(--muted);
+      line-height: 1.4;
+      font-size: 13px;
+      display: none;
+    }
+
+    .node.expanded .node-sub {
+      display: block;
+    }
+
+    .panel-section {
+      margin-bottom: 18px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .panel-section:last-child {
+      margin-bottom: 0;
+      padding-bottom: 0;
+      border-bottom: 0;
+    }
+
+    .panel-section h2,
+    .panel-section h3 {
+      margin: 0 0 8px;
+    }
+
+    .panel-section h2 {
+      font-size: 22px;
+    }
+
+    .panel-section h3 {
+      font-size: 14px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .panel-section p, .panel-section ul {
+      margin: 0;
+      line-height: 1.5;
+      color: var(--text);
+      font-size: 14px;
+    }
+
+    .panel-section ul {
+      padding-left: 18px;
+    }
+
+    .facts,
+    .bool-grid,
+    .overall-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .fact,
+    .bool-item,
+    .overall-item {
+      border-radius: 12px;
+      padding: 10px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .fact strong,
+    .bool-item strong,
+    .overall-item strong {
+      display: block;
+      margin-bottom: 4px;
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .chip {
+      padding: 6px 9px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.08);
+      color: var(--text);
+      font-size: 12px;
+    }
+
+    .status-true { color: var(--ok); }
+    .status-false { color: var(--danger); }
+
+    .empty {
+      color: var(--muted);
+      font-style: italic;
+    }
+
+    .sidebar.hidden .selected-content {
+      display: none;
+    }
+
+    .sidebar:not(.hidden) .placeholder {
+      display: none;
+    }
+
+    .memory-action {
+      margin-top: 12px;
+      display: none;
+      width: 100%;
+      background: rgba(228,161,100,0.16);
+      border-color: rgba(228,161,100,0.5);
+    }
+
+    .memory-action.visible {
+      display: block;
+    }
+
+    .memory-action:hover {
+      background: rgba(228,161,100,0.25);
+    }
+
+    @media (max-width: 1320px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .navpanel,
+      .sidebar {
+        position: static;
+        resize: none;
+        max-width: none;
+      }
+
+      .legend {
+        justify-content: flex-start;
+      }
+    }
+
+    @media (max-width: 760px) {
+      .facts,
+      .bool-grid,
+      .overall-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="header">
+      <div>
+        <h1>Present Map Prototype</h1>
+        <p>
+          Present is the start point for all memories. Day 1 routes into <strong>Florist</strong>. Days 2-4 route into <strong>R&amp;J</strong>, <strong>Villain</strong>, or <strong>Child</strong>. Day 5 routes into <strong>Boris</strong>. Day 7 is the ending-day present state.
+        </p>
+      </div>
+      <div class="legend">
+        <span><i class="dot" style="background: var(--scene)"></i> Location Node</span>
+        <span><i class="dot" style="background: var(--memory)"></i> Memory Entry</span>
+        <span><i class="dot" style="background: var(--npc)"></i> NPC / Unlock Gate</span>
+      </div>
+    </div>
+
+    <div class="controls">
+      <div class="control-group">
+        <label for="daySelect">Day</label>
+        <select id="daySelect">
+          <option value="1">Day 1</option>
+          <option value="2">Day 2</option>
+          <option value="3">Day 3</option>
+          <option value="4">Day 4</option>
+          <option value="5">Day 5</option>
+          <option value="6">Day 6</option>
+          <option value="7">Day 7</option>
+        </select>
+      </div>
+      <div class="control-group">
+        <button id="expandAll" type="button">Expand All</button>
+        <button id="collapseAll" type="button">Collapse All</button>
+      </div>
+      <div class="control-group">
+        <label for="focusSelect">Focus</label>
+        <select id="focusSelect">
+          <option value="all">All Nodes</option>
+          <option value="confirmed">Confirmed Only</option>
+          <option value="skeleton">Skeleton / Placeholder</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="layout">
+      <div class="panel navpanel">
+        <div class="panel-section">
+          <h3>Navigation</h3>
+          <input id="nodeSearch" class="search" type="text" placeholder="Search node name..." />
+          <div class="nav-list" id="navList"></div>
+        </div>
+
+        <div class="panel-section">
+          <h3>Overall Panel</h3>
+          <p class="empty">Simulated player-state tracking across present days, memory entry, choices, notebook, and ending readiness.</p>
+          <div class="overall-grid" id="overallGrid"></div>
+        </div>
+
+        <div class="panel-section">
+          <h3>Day Meaning</h3>
+          <ul>
+            <li>Day 1: Florist route opens first.</li>
+            <li>Days 2-4: R&amp;J, Villain, Child are available choices.</li>
+            <li>Day 5: Boris memory opens.</li>
+            <li>Day 7: ending-day present state.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="board" id="board">
+        <svg viewBox="0 0 1100 980" preserveAspectRatio="none">
+          <path class="edge" d="M 545 190 C 545 250, 545 270, 545 320" />
+          <path class="edge" d="M 545 190 C 455 250, 360 270, 270 330" />
+          <path class="edge" d="M 545 190 C 635 250, 730 270, 820 330" />
+          <path class="edge" d="M 270 430 C 270 500, 270 530, 270 600" />
+          <path class="edge" d="M 545 430 C 545 500, 545 530, 545 600" />
+          <path class="edge" d="M 820 430 C 820 500, 820 530, 820 600" />
+          <path class="edge" d="M 330 655 C 410 690, 470 710, 545 735" />
+          <path class="edge" d="M 760 655 C 680 690, 620 710, 545 735" />
+          <path class="edge" d="M 545 790 C 545 845, 545 860, 545 910" />
+        </svg>
+
+        <div class="node location" data-id="town-square" data-confirmed="true" style="left: 175px; top: 315px;">
+          <div class="node-meta">Location</div>
+          <h3 class="node-title">Town Square</h3>
+          <div class="node-sub">Free-roam present space for clue-following, NPC talks, and environment changes.</div>
+        </div>
+
+        <div class="node location active" data-id="memory-tree" data-confirmed="true" style="left: 455px; top: 110px;">
+          <div class="node-meta">Present Hub</div>
+          <h3 class="node-title">Memory Tree</h3>
+          <div class="node-sub">Central present trigger point. All memories should ultimately route from present-side interactions anchored here.</div>
+        </div>
+
+        <div class="node location" data-id="museum-exterior" data-confirmed="true" style="left: 725px; top: 315px;">
+          <div class="node-meta">Location</div>
+          <h3 class="node-title">Museum Exterior</h3>
+          <div class="node-sub">Museum-facing present staging area that routes to exhibits, Memory Tree, and interviews.</div>
+        </div>
+
+        <div class="node location" data-id="artifact-exhibit" data-confirmed="true" style="left: 175px; top: 585px;">
+          <div class="node-meta">Location</div>
+          <h3 class="node-title">Artifact Exhibit</h3>
+          <div class="node-sub">Inspectable object branch with culture, documents, and notebook collectable placeholders.</div>
+        </div>
+
+        <div class="node memory-entry" data-id="memory-entry-hub" data-confirmed="false" style="left: 455px; top: 585px;">
+          <div class="node-meta">Memory Entry Hub</div>
+          <h3 class="node-title">All Memory Entrances</h3>
+          <div class="node-sub">Day-aware routing node for Florist, R&amp;J, Villain, Child, and Boris memories.</div>
+        </div>
+
+        <div class="node location" data-id="war-exhibit" data-confirmed="true" style="left: 725px; top: 585px;">
+          <div class="node-meta">Location</div>
+          <h3 class="node-title">War Exhibit / Map Area</h3>
+          <div class="node-sub">War-history branch with map/signage context and clue-routing potential.</div>
+        </div>
+
+        <div class="node npc-gate" data-id="mira-present" data-confirmed="true" style="left: 245px; top: 735px;">
+          <div class="node-meta">NPC Gate</div>
+          <h3 class="node-title">Mira Present Follow-up</h3>
+          <div class="node-sub">Post-Florist present dialogue node with future layer-2/3 gating.</div>
+        </div>
+
+        <div class="node npc-gate" data-id="rj-present" data-confirmed="true" style="left: 625px; top: 735px;">
+          <div class="node-meta">NPC Gate</div>
+          <h3 class="node-title">Jovan / Ruzica Present Encounter</h3>
+          <div class="node-sub">Present-day museum encounter that can route into R&amp;J memory.</div>
+        </div>
+
+        <div class="node location" data-id="day-state" data-confirmed="false" style="left: 455px; top: 900px;">
+          <div class="node-meta">State / Ending</div>
+          <h3 class="node-title">Day State + Day 7 Ending</h3>
+          <div class="node-sub">Tracks day-by-day present changes and final ending-state readout.</div>
+        </div>
+      </div>
+
+      <div class="panel sidebar hidden" id="sidebar">
+        <div class="placeholder panel-section">
+          <h3>Selected Node</h3>
+          <p class="empty">Click a node to open its detail panel.</p>
+        </div>
+
+        <div class="selected-content">
+          <div class="panel-section">
+            <h3>Selected Node</h3>
+            <h2 id="panelTitle"></h2>
+            <p id="panelSummary"></p>
+            <div class="facts">
+              <div class="fact">
+                <strong>Node Type</strong>
+                <span id="panelType"></span>
+              </div>
+              <div class="fact">
+                <strong>Source Status</strong>
+                <span id="panelStatus"></span>
+              </div>
+              <div class="fact">
+                <strong>Day Open</strong>
+                <span id="panelOpen"></span>
+              </div>
+              <div class="fact">
+                <strong>Memory Access</strong>
+                <span id="panelMemory"></span>
+              </div>
+            </div>
+            <button id="enterMemoryButton" class="memory-action" type="button">Enter Memory</button>
+          </div>
+
+          <div class="panel-section">
+            <h3>Day Snapshot</h3>
+            <p id="daySnapshot"></p>
+          </div>
+
+          <div class="panel-section">
+            <h3>NPCs / Availability</h3>
+            <div class="chips" id="npcChips"></div>
+          </div>
+
+          <div class="panel-section">
+            <h3>Interactions</h3>
+            <ul id="interactionList"></ul>
+          </div>
+
+          <div class="panel-section">
+            <h3>Choice Record</h3>
+            <p class="empty">Dialogue and collectable tracking are modeled as true/false path states.</p>
+            <div class="bool-grid" id="boolGrid"></div>
+          </div>
+
+          <div class="panel-section">
+            <h3>NPC Layer Unlocks</h3>
+            <ul id="unlockList"></ul>
+          </div>
+
+          <div class="panel-section">
+            <h3>Query Path Panel</h3>
+            <ul id="queryPath"></ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const nodeData = {
+      "memory-tree": {
+        title: "Memory Tree",
+        type: "Present Hub",
+        confirmed: true,
+        summary: "Central present trigger point. Marc's intro, interviews, and memory routing all connect here. Present should always be the start point for memory access.",
+        openByDay: { 1: "Open", 2: "Open", 3: "Open", 4: "Open", 5: "Open", 6: "Open", 7: "Ending State Anchor" },
+        memoryAccess: "Primary",
+        npcs: ["Petar", "Marc", "Route-specific interview NPCs"],
+        interactions: [
+          "Present-day intro and interview framing",
+          "Memory routing anchor",
+          "Notebook / consequence return point"
+        ],
+        bools: [
+          ["Dialogue Recorded", true],
+          ["Collectable Recorded", true],
+          ["Stat Impact Possible", true],
+          ["Notebook Progress Possible", true]
+        ],
+        unlocks: [
+          "Layer 2 and 3 NPC talks should route to prerequisite nodes instead of unlocking on click.",
+          "Memory entry prerequisites should be inspectable through related location and clue nodes."
+        ],
+        queryPath: [
+          "Present Hub -> memory entry hub",
+          "Present Hub -> clue / NPC talk -> notebook / stat / environment consequence"
+        ]
+      },
+      "town-square": {
+        title: "Town Square",
+        type: "Location",
+        confirmed: true,
+        summary: "Present-day free roam space used for clue-following, graffiti or environment-response placeholders, and NPC follow-up interactions.",
+        openByDay: { 1: "Open", 2: "Open", 3: "Open", 4: "Open", 5: "Open", 6: "Open", 7: "Open" },
+        memoryAccess: "Indirect",
+        npcs: ["Marc", "Mira follow-up placeholder", "Passerby placeholders"],
+        interactions: [
+          "Move through present map",
+          "Follow clue chain",
+          "Talk to NPCs"
+        ],
+        bools: [
+          ["Dialogue Recorded", true],
+          ["Collectable Recorded", true],
+          ["Stat Impact Possible", true],
+          ["Notebook Progress Possible", true]
+        ],
+        unlocks: [
+          "Use this node to route toward clue and environment consequence nodes."
+        ],
+        queryPath: [
+          "Town Square -> clue -> NPC choice -> stat shift",
+          "Town Square -> interactable point -> notebook / environment update"
+        ]
+      },
+      "museum-exterior": {
+        title: "Museum Exterior",
+        type: "Location",
+        confirmed: true,
+        summary: "Museum-facing staging area from Marc's intro structure. Connects to present museum flow and exhibit branches.",
+        openByDay: { 1: "Open", 2: "Open", 3: "Open", 4: "Open", 5: "Open", 6: "Open", 7: "Open" },
+        memoryAccess: "Indirect",
+        npcs: ["Marc", "Visitor placeholders"],
+        interactions: [
+          "Approach museum",
+          "Route into exhibit branches",
+          "Return to Memory Tree"
+        ],
+        bools: [
+          ["Dialogue Recorded", true],
+          ["Collectable Recorded", false],
+          ["Stat Impact Possible", false],
+          ["Notebook Progress Possible", false]
+        ],
+        unlocks: [
+          "Museum exterior routes the player into exhibit and interview branches."
+        ],
+        queryPath: [
+          "Museum Exterior -> Artifact Exhibit",
+          "Museum Exterior -> War Exhibit / Map Area",
+          "Museum Exterior -> Memory Tree"
+        ]
+      },
+      "artifact-exhibit": {
+        title: "Artifact Exhibit",
+        type: "Location",
+        confirmed: true,
+        summary: "Document and object-heavy exhibit branch with notebook collectable and history-delivery potential.",
+        openByDay: { 1: "Open", 2: "Open", 3: "Open", 4: "Open", 5: "Placeholder", 6: "Placeholder", 7: "Placeholder" },
+        memoryAccess: "Clue-based",
+        npcs: ["Guide placeholder", "Marc placeholder"],
+        interactions: [
+          "Inspect object",
+          "Read document or label",
+          "Add notebook entry placeholder"
+        ],
+        bools: [
+          ["Dialogue Recorded", false],
+          ["Collectable Recorded", true],
+          ["Stat Impact Possible", true],
+          ["Notebook Progress Possible", true]
+        ],
+        unlocks: [
+          "Collectables should point to related notebook entries and gating nodes."
+        ],
+        queryPath: [
+          "Artifact Exhibit -> inspect object -> notebook",
+          "Artifact Exhibit -> document clue -> memory or NPC route"
+        ]
+      },
+      "war-exhibit": {
+        title: "War Exhibit / Map Area",
+        type: "Location",
+        confirmed: true,
+        summary: "War-history branch with map/signage emphasis. Good location node for the present map concept.",
+        openByDay: { 1: "Open", 2: "Open", 3: "Open", 4: "Open", 5: "Placeholder", 6: "Placeholder", 7: "Placeholder" },
+        memoryAccess: "Clue-based",
+        npcs: ["Guide placeholder", "Visitor placeholder"],
+        interactions: [
+          "Inspect map or sign",
+          "Read war-history context",
+          "Trigger perspective change placeholder"
+        ],
+        bools: [
+          ["Dialogue Recorded", false],
+          ["Collectable Recorded", true],
+          ["Stat Impact Possible", true],
+          ["Notebook Progress Possible", true]
+        ],
+        unlocks: [
+          "War exhibit nodes should route into geography/history consequences and notebook progress."
+        ],
+        queryPath: [
+          "War Exhibit -> inspect map -> notebook",
+          "War Exhibit -> clue interpretation -> stat / environment consequence"
+        ]
+      },
+      "memory-entry-hub": {
+        title: "All Memory Entrances",
+        type: "Memory Entry Hub",
+        confirmed: false,
+        summary: "Day-aware routing node for all memories. Day 1 opens Florist. Days 2-4 open R&J, Villain, and Child. Day 5 opens Boris.",
+        openByDay: {
+          1: "Florist only",
+          2: "R&J / Villain / Child",
+          3: "R&J / Villain / Child",
+          4: "R&J / Villain / Child",
+          5: "Boris",
+          6: "Placeholder",
+          7: "No new memory; ending-day state"
+        },
+        memoryAccess: "Primary",
+        npcs: ["Mira", "Jovan", "Ruzica", "Villain route placeholder", "Child route placeholder", "Boris"],
+        interactions: [
+          "Enter Florist memory on Day 1",
+          "Choose R&J, Villain, or Child on Days 2-4",
+          "Enter Boris memory on Day 5"
+        ],
+        bools: [
+          ["Dialogue Recorded", false],
+          ["Collectable Recorded", false],
+          ["Stat Impact Possible", true],
+          ["Notebook Progress Possible", true]
+        ],
+        unlocks: [
+          "Memory access should query prerequisite present nodes.",
+          "NPC layer unlocks should route to relevant clue, notebook, and choice nodes."
+        ],
+        queryPath: [
+          "Day 1 -> Florist",
+          "Days 2-4 -> choose R&J / Villain / Child",
+          "Day 5 -> Boris",
+          "Day 7 -> ending readout only"
+        ],
+        enterButton: true
+      },
+      "mira-present": {
+        title: "Mira Present Follow-up",
+        type: "NPC Gate",
+        confirmed: true,
+        summary: "Post-Florist present dialogue node. Supports layer-based follow-up and future route checks.",
+        openByDay: { 1: "After Florist", 2: "Placeholder", 3: "Placeholder", 4: "Placeholder", 5: "Placeholder", 6: "Placeholder", 7: "Placeholder" },
+        memoryAccess: "Post-memory follow-up",
+        npcs: ["Mira"],
+        interactions: [
+          "Choose one dialogue response",
+          "Record local choice state",
+          "Affect stat / notebook / environment placeholders"
+        ],
+        bools: [
+          ["Dialogue Recorded", true],
+          ["Collectable Recorded", false],
+          ["Stat Impact Possible", true],
+          ["Notebook Progress Possible", true]
+        ],
+        unlocks: [
+          "Layer 2 should point to Florist completion and clue-state nodes.",
+          "Layer 3 should point to compounded notebook / relationship / day-state nodes."
+        ],
+        queryPath: [
+          "Florist complete -> Mira follow-up -> stat / notebook / environment consequence"
+        ]
+      },
+      "rj-present": {
+        title: "Jovan / Ruzica Present Encounter",
+        type: "NPC Gate",
+        confirmed: true,
+        summary: "Present-day museum encounter that routes into R&J memory and later follow-up conditions.",
+        openByDay: { 1: "Setup placeholder", 2: "Open", 3: "Open", 4: "Open", 5: "Follow-up placeholder", 6: "Placeholder", 7: "Placeholder" },
+        memoryAccess: "Direct route into R&J",
+        npcs: ["Jovan", "Ruzica"],
+        interactions: [
+          "Interview framing",
+          "Missing letter setup",
+          "Route into R&J memory"
+        ],
+        bools: [
+          ["Dialogue Recorded", true],
+          ["Collectable Recorded", true],
+          ["Stat Impact Possible", true],
+          ["Notebook Progress Possible", true]
+        ],
+        unlocks: [
+          "Layer 2 should point to R&J completion conditions.",
+          "Layer 3 should point to notebook + choice + day-state conditions."
+        ],
+        queryPath: [
+          "Present encounter -> missing letter -> R&J memory -> return to present"
+        ]
+      },
+      "day-state": {
+        title: "Day State + Day 7 Ending",
+        type: "State / Ending",
+        confirmed: false,
+        summary: "Tracks seven-day present changes, route consequences, and the final Day 7 ending-state readout.",
+        openByDay: { 1: "Active skeleton", 2: "Active skeleton", 3: "Active skeleton", 4: "Active skeleton", 5: "Active skeleton", 6: "Active skeleton", 7: "Ending Day State" },
+        memoryAccess: "Tracks consequences and ending path",
+        npcs: ["All day-dependent NPCs placeholder"],
+        interactions: [
+          "Check daily open state",
+          "Check NPC appearance",
+          "Check ending consequence path"
+        ],
+        bools: [
+          ["Dialogue Recorded", true],
+          ["Collectable Recorded", true],
+          ["Stat Impact Possible", true],
+          ["Notebook Progress Possible", true]
+        ],
+        unlocks: [
+          "This node should remain query-only and route users to the source of each consequence."
+        ],
+        queryPath: [
+          "Choice / collect / memory completion -> stat / notebook / environment update -> Day 7 ending"
+        ]
+      }
+    };
+
+    const dayNotes = {
+      1: "Day 1 is the Florist day. Present leads into Florist first, then routes back to Mira follow-up and updated present-state logic.",
+      2: "Day 2 opens the first choice window for R&J, Villain, and Child from present-side routing.",
+      3: "Day 3 keeps the R&J / Villain / Child choice set active with room for changed NPC layers and clue states.",
+      4: "Day 4 is still a choice day for R&J / Villain / Child, with deeper present consequences expected.",
+      5: "Day 5 routes into Boris memory.",
+      6: "Day 6 is currently a placeholder for late-present convergence and consequence readout.",
+      7: "Day 7 is the ending-day present state. It should read accumulated choices, notebook progress, NPC unlocks, and environment changes."
+    };
+
+    const overallState = {
+      currentDay: 1,
+      memoriesEntered: 1,
+      presentNodesVisited: 5,
+      dialogueChoicesRecorded: 3,
+      collectablesRecorded: 2,
+      notebookEntriesProgressed: 2,
+      statAffected: true,
+      endingReady: false
+    };
+
+    const nodes = [...document.querySelectorAll(".node")];
+    const sidebar = document.getElementById("sidebar");
+    const navList = document.getElementById("navList");
+    const nodeSearch = document.getElementById("nodeSearch");
+    const overallGrid = document.getElementById("overallGrid");
+    const panel = {
+      title: document.getElementById("panelTitle"),
+      summary: document.getElementById("panelSummary"),
+      type: document.getElementById("panelType"),
+      status: document.getElementById("panelStatus"),
+      open: document.getElementById("panelOpen"),
+      memory: document.getElementById("panelMemory"),
+      npcChips: document.getElementById("npcChips"),
+      interactionList: document.getElementById("interactionList"),
+      boolGrid: document.getElementById("boolGrid"),
+      unlockList: document.getElementById("unlockList"),
+      queryPath: document.getElementById("queryPath"),
+      daySnapshot: document.getElementById("daySnapshot"),
+      enterMemoryButton: document.getElementById("enterMemoryButton")
+    };
+
+    const daySelect = document.getElementById("daySelect");
+    const focusSelect = document.getElementById("focusSelect");
+    const expandAll = document.getElementById("expandAll");
+    const collapseAll = document.getElementById("collapseAll");
+
+    function renderList(target, items, emptyText = "No data yet.") {
+      target.innerHTML = "";
+      if (!items || items.length === 0) {
+        const li = document.createElement("li");
+        li.className = "empty";
+        li.textContent = emptyText;
+        target.appendChild(li);
+        return;
+      }
+
+      items.forEach((item) => {
+        const li = document.createElement("li");
+        li.textContent = item;
+        target.appendChild(li);
+      });
+    }
+
+    function renderChips(target, items) {
+      target.innerHTML = "";
+      if (!items || items.length === 0) {
+        const span = document.createElement("span");
+        span.className = "empty";
+        span.textContent = "No NPC data yet.";
+        target.appendChild(span);
+        return;
+      }
+
+      items.forEach((item) => {
+        const chip = document.createElement("span");
+        chip.className = "chip";
+        chip.textContent = item;
+        target.appendChild(chip);
+      });
+    }
+
+    function renderBools(items) {
+      panel.boolGrid.innerHTML = "";
+      items.forEach(([label, value]) => {
+        const div = document.createElement("div");
+        div.className = "bool-item";
+        div.innerHTML = `<strong>${label}</strong><span class="${value ? "status-true" : "status-false"}">${value ? "True" : "False"}</span>`;
+        panel.boolGrid.appendChild(div);
+      });
+    }
+
+    function renderNav(filter = "") {
+      const q = filter.trim().toLowerCase();
+      navList.innerHTML = "";
+      nodes
+        .filter((node) => {
+          const title = node.querySelector(".node-title")?.textContent?.toLowerCase() ?? "";
+          return !q || title.includes(q);
+        })
+        .forEach((node) => {
+          const button = document.createElement("button");
+          button.className = "nav-button";
+          button.dataset.id = node.dataset.id;
+          button.textContent = node.querySelector(".node-title").textContent;
+          if (node.classList.contains("active")) button.classList.add("active");
+          button.addEventListener("click", () => selectNode(node));
+          navList.appendChild(button);
+        });
+    }
+
+    function renderOverallPanel() {
+      overallGrid.innerHTML = "";
+      const items = [
+        ["Current Day", overallState.currentDay],
+        ["Memories Entered", overallState.memoriesEntered],
+        ["Present Nodes Visited", overallState.presentNodesVisited],
+        ["Choices Recorded", overallState.dialogueChoicesRecorded],
+        ["Collectables Recorded", overallState.collectablesRecorded],
+        ["Notebook Progress", overallState.notebookEntriesProgressed],
+        ["Stat Affected", overallState.statAffected ? "True" : "False"],
+        ["Ending Ready", overallState.endingReady ? "True" : "False"]
+      ];
+
+      items.forEach(([label, value]) => {
+        const div = document.createElement("div");
+        div.className = "overall-item";
+        div.innerHTML = `<strong>${label}</strong><span>${value}</span>`;
+        overallGrid.appendChild(div);
+      });
+    }
+
+    function updatePanel(id) {
+      const day = daySelect.value;
+      const data = nodeData[id];
+      if (!data) return;
+
+      sidebar.classList.remove("hidden");
+      panel.title.textContent = data.title;
+      panel.summary.textContent = data.summary;
+      panel.type.textContent = data.type;
+      panel.status.textContent = data.confirmed ? "Confirmed from current docs" : "Skeleton / placeholder structure";
+      panel.open.textContent = data.openByDay[day] ?? "Placeholder";
+      panel.memory.textContent = data.memoryAccess;
+      panel.daySnapshot.textContent = dayNotes[day];
+      renderChips(panel.npcChips, data.npcs);
+      renderList(panel.interactionList, data.interactions);
+      renderBools(data.bools);
+      renderList(panel.unlockList, data.unlocks);
+      renderList(panel.queryPath, data.queryPath);
+
+      panel.enterMemoryButton.classList.toggle("visible", !!data.enterButton);
+      if (data.enterButton) {
+        panel.enterMemoryButton.textContent = `Enter Memory (Day ${day})`;
+        panel.enterMemoryButton.onclick = () => {
+          alert(`Prototype: enter memory flow for Day ${day} from "${data.title}".`);
+        };
+      } else {
+        panel.enterMemoryButton.onclick = null;
+      }
+    }
+
+    function selectNode(node) {
+      nodes.forEach((n) => n.classList.remove("active"));
+      document.querySelectorAll(".nav-button").forEach((n) => n.classList.remove("active"));
+      node.classList.add("active");
+      const navButton = document.querySelector(`.nav-button[data-id="${node.dataset.id}"]`);
+      if (navButton) navButton.classList.add("active");
+      updatePanel(node.dataset.id);
+    }
+
+    nodes.forEach((node) => {
+      node.addEventListener("click", () => selectNode(node));
+      node.addEventListener("dblclick", () => node.classList.toggle("expanded"));
+    });
+
+    expandAll.addEventListener("click", () => {
+      nodes.forEach((node) => node.classList.add("expanded"));
+    });
+
+    collapseAll.addEventListener("click", () => {
+      nodes.forEach((node) => node.classList.remove("expanded"));
+    });
+
+    focusSelect.addEventListener("change", () => {
+      const mode = focusSelect.value;
+      nodes.forEach((node) => {
+        if (mode === "all") {
+          node.style.opacity = "1";
+          return;
+        }
+
+        const confirmed = node.dataset.confirmed === "true";
+        const show = mode === "confirmed" ? confirmed : !confirmed;
+        node.style.opacity = show ? "1" : "0.28";
+      });
+    });
+
+    daySelect.addEventListener("change", () => {
+      const day = Number(daySelect.value);
+      overallState.currentDay = day;
+      overallState.memoriesEntered = day === 1 ? 1 : day <= 4 ? 2 : day === 5 ? 3 : day >= 7 ? 4 : 3;
+      overallState.endingReady = day === 7;
+      renderOverallPanel();
+
+      const active = document.querySelector(".node.active");
+      if (active) updatePanel(active.dataset.id);
+    });
+
+    nodeSearch.addEventListener("input", () => renderNav(nodeSearch.value));
+
+    renderNav();
+    renderOverallPanel();
+  </script>
+</body>
+</html>
