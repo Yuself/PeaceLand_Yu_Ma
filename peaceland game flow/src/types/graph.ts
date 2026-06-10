@@ -27,6 +27,8 @@ export interface GraphNode {
   detail: string;
   x: number;
   y: number;
+  width?: number;
+  height?: number;
   confirmed: boolean;
   dayOpen: Record<number, string>;
   memoryAccess: string;
@@ -35,6 +37,8 @@ export interface GraphNode {
   bools: Array<[string, boolean]>;
   unlocks: string[];
   queryPath: string[];
+  imageSrc?: string;
+  imageAlt?: string;
   enterButton?: boolean;
   level?: GraphNodeLevel;
   role?: GraphNodeRole;
@@ -53,6 +57,24 @@ export interface GraphEdge {
   id: string;
   from: string;
   to: string;
+  label?: string;
+  type?: "default" | "smoothstep" | "step" | "straight";
+  sourceHandle?: string;
+  targetHandle?: string;
+  animated?: boolean;
+}
+
+export interface GraphDocument<TNode extends GraphNode = GraphNode> {
+  nodes: TNode[];
+  edges: GraphEdge[];
+}
+
+export type GraphBoardId = "present" | "florist-memory" | "rj-memory";
+
+export interface SiteGraphDocument {
+  present: GraphDocument;
+  floristMemory: GraphDocument;
+  rjMemory: GraphDocument;
 }
 
 export interface OverallState {
