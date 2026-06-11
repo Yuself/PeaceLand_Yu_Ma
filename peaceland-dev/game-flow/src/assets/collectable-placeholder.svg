@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 200" role="img" aria-label="Collectable placeholder">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1f2a44"/>
+      <stop offset="100%" stop-color="#121a2d"/>
+    </linearGradient>
+  </defs>
+  <rect width="320" height="200" fill="url(#bg)"/>
+  <rect x="96" y="44" width="128" height="112" rx="12" fill="rgba(255,255,255,0.06)" stroke="rgba(160,190,255,0.35)" stroke-width="2"/>
+  <path d="M112 76h96M112 100h72M112 124h88" stroke="rgba(160,190,255,0.45)" stroke-width="6" stroke-linecap="round"/>
+  <circle cx="248" cy="56" r="18" fill="rgba(134,214,167,0.18)" stroke="rgba(134,214,167,0.55)" stroke-width="2"/>
+  <text x="160" y="178" text-anchor="middle" fill="rgba(255,255,255,0.55)" font-family="Segoe UI, sans-serif" font-size="14" letter-spacing="0.12em">COLLECTABLE</text>
+</svg>
